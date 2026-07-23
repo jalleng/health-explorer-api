@@ -80,10 +80,3 @@ uvicorn main:app --reload
 
 The API will be available at `http://localhost:8000`. Interactive docs are
 at `http://localhost:8000/docs`.
-
-### Environment variables
-
-| Variable            | Description                                          |
-| ------------------- | ----------------------------------------------------- |
-| `OPENAI_API_KEY`    | OpenAI API key, used for embeddings and generation.   |
-| `SOCRATA_APP_TOKEN`  | Socrata app token, used when fetching CDC PLACES data. |

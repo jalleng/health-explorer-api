@@ -1,13 +1,11 @@
-import os
-
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from config import CHAT_MODEL
+
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-CHAT_MODEL = "gpt-4o-mini"
+client = OpenAI()
 
 
 def build_prompt(question: str, chunks: list[str]) -> str:
@@ -30,4 +28,8 @@ def generate(question: str, chunks: list[str]) -> str:
         messages=[{"role": "user", "content": prompt}],
     )
 
-    return response.choices[0].message.content
+    content = response.choices[0].message.content
+    if content is None:
+        raise ValueError("Model returned no content (possibly refused or filtered).")
+
+    return content
