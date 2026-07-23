@@ -1,22 +1,19 @@
-import os
-
 import chromadb
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from config import CHROMA_PATH, COLLECTION_NAME, EMBEDDING_MODEL
+
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-chroma_client = chromadb.PersistentClient(path="chroma_db")
+client = OpenAI()
+chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
+collection = chroma_client.get_or_create_collection(name=COLLECTION_NAME)
 
-EMBEDDING_MODEL = "text-embedding-3-small"
-COLLECTION_NAME = "health_data"
-TOP_K = 5
+TOP_K = 15
 
 
 def retrieve(question: str) -> list[str]:
-    collection = chroma_client.get_or_create_collection(name=COLLECTION_NAME)
-
     response = client.embeddings.create(input=question, model=EMBEDDING_MODEL)
     query_embedding = response.data[0].embedding
 
@@ -25,4 +22,5 @@ def retrieve(question: str) -> list[str]:
         n_results=TOP_K,
     )
 
-    return results["documents"][0]
+    documents = results.get("documents")
+    return documents[0] if documents else []

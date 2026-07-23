@@ -5,9 +5,9 @@
 # 4. python ingest.py
 # 5. uvicorn main:app --reload
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from generator import generate
 from retriever import retrieve
@@ -24,14 +24,23 @@ app.add_middleware(
 
 
 class QueryRequest(BaseModel):
-    question: str
+    question: str = Field(min_length=1, max_length=2000)
 
 
-@app.post("/query")
+class QueryResponse(BaseModel):
+    answer: str
+    sources: list[str]
+
+
+@app.post("/query", response_model=QueryResponse)
 def query(request: QueryRequest):
-    chunks = retrieve(request.question)
-    answer = generate(request.question, chunks)
-    return {"answer": answer, "sources": chunks}
+    try:
+        chunks = retrieve(request.question)
+        answer = generate(request.question, chunks)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to answer question: {e}")
+
+    return QueryResponse(answer=answer, sources=chunks)
 
 
 @app.get("/health")
